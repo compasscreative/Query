@@ -11,6 +11,7 @@ Query is a database layer for developers who enjoy writing SQL. While it does in
 - Query provides an organized way to run queries using raw SQL.
 - Query is built on top of the PDO library, and is therefore very safe.
 - Query currently supports MySQL and SQLite databases.
+- Query has a built-in logger.
 - Table ORM makes `INSERT`, `UPDATE` and `DELETE` statements effortless.
 - Table ORM requires minimal setup (only one additional model parameter needed).
 - Select Query Builder automates basic `SELECT` statements.
@@ -194,4 +195,14 @@ Conversely, when selecting specific table fields, Select will return `stdClass` 
 	$user = User::select('COUNT(*)')			// returns stdClass
 	$user->update()								// Does not work
 	$user->delete()								// Does not work
+```
+
+## Query logging
+
+Query has a built-in logger, which tracks all queries run, including those executed by the Table ORM and Select Query Builder. The logger keeps a record of the SQL, bindings, and execution time of each query. To view this information (as an array), simply call the `log()` method:
+
+```php
+<?php
+
+	$log = DB::log();
 ```

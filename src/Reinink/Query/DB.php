@@ -42,6 +42,11 @@ class DB
 		return self::$instance;
 	}
 
+	public static function log()
+	{
+		return self::$instance->queries;
+	}
+
 	public static function query($sql, $bindings = array())
 	{
 		$statement = self::execute($sql, $bindings);
@@ -87,6 +92,7 @@ class DB
 		self::$instance->queries[] = array
 		(
 			'sql' => $sql,
+			'bindings' => $bindings,
 			'time' => ((microtime(true) - $start)*1000) . ' milliseconds'
 		);
 
