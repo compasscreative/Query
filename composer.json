@@ -1,12 +1,5 @@
 {
 	"name": "reinink/query",
-	"description": "A database layer for developers who like writing SQL.",
-	"authors": [
-		{
-			"name": "Jonathan Reinink",
-			"email": "jonathan@reininks.com"
-		}
-	],
 	"autoload":
 	{
 		"psr-0":
