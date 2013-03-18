@@ -102,7 +102,7 @@ class User extends Table
 
 ## Select Query Builder
 
-Select sits on top of Table, and therefore requires models to work. Select will not be the answer to all your `SELECT` statements. It simply provides some automation to more basic, and more common queries.
+Select sits on top of Table, and therefore requires models to work. Select will not be the answer to all your `SELECT` statements. It simply provides some automation to more basic (and typically more common) queries.
 
 ### Notable limitations
 
@@ -170,7 +170,7 @@ User::select('id, name, email')->whereIn('country', array('Canada', 'USA'))->ord
 User::select('id, name, email')->where('name', 'Jonathan')->andNot('country', 'Canada')->rows();
 
 // Select all users with no birthday set
-User::select('id, name, email')->whereNull('birthday')->orderBy('name')->rows();
+User::select('id, name, email')->whereNull('birth_date')->orderBy('name')->rows();
 
 // Select a specific user
 User::select('id, name, email')->where('id', 1)->row();
@@ -184,7 +184,7 @@ User::select('COUNT(*)')->where('country', 'Canada')->field();
 
 ### Returned objects
 
-Query subscribes to the belief that `SELECT *` should never be used, unless prior to performing an `UPDATE` or `DELETE` query. Since these are methods built into the Table ORM, when you do select all fields, Select will automatically return `Model` objects.
+Query subscribes to the belief that `SELECT *` should never be used, unless prior to performing an `UPDATE` or `DELETE` query. Since these are methods built into the Table ORM, when you do a `SELECT *`, Select will automatically return `Model` objects.
 
 Conversely, when selecting specific table fields, Select will return `stdClass` objects. Some examples:
 
