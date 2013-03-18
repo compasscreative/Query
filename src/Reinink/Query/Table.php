@@ -59,14 +59,7 @@ abstract class Table
                !$property->isStatic() and
                 $property->getName() !== 'id') {
 
-                if (strlen($this->{$property->getName()})) {
-
-                    $values[$property->getName()] = $this->{$property->getName()};
-
-                } else {
-
-                    $values[$property->getName()] = null;
-                }
+                $values[$property->getName()] = $this->{$property->getName()};
             }
         }
 
@@ -98,14 +91,7 @@ abstract class Table
                !$property->isStatic() and
                 $property->getName() !== 'id') {
 
-                if (strlen($this->{$property->getName()})) {
-
-                    $values[$property->getName()] = $this->{$property->getName()};
-
-                } else {
-
-                    $values[$property->getName()] = null;
-                }
+                $values[$property->getName()] = $this->{$property->getName()};
             }
         }
 
