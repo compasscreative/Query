@@ -99,6 +99,17 @@ class User extends Table
     }
 }
 ```
+#### Nullable fields
+
+You can set "nullable" database fields as `null` by simply assigning the model paramater to `null`. This can be very important, especially for date fields in MySQL. Consider the following example:
+
+```sql
+-- Will set birth_date to 0000-00-00
+UPDATE members SET birth_date = '' WHERE id = 1;
+
+-- Will set birth_date to NULL
+UPDATE members SET birth_date = NULL WHERE id = 1;
+```
 
 ## Select Query Builder
 
