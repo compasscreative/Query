@@ -21,21 +21,23 @@ Query is a database layer for developers who enjoy writing SQL. While it does in
 ```php
 <?php
 
-	// Select all users
-	$users = DB::rows('SELECT id, name, email FROM users ORDER BY name');
+// Select all users
+$users = DB::rows('SELECT id, name, email FROM users ORDER BY name');
 
-	// Select a specific user
-	$user = DB::row('SELECT id, name, email FROM users WHERE id = ?', array($id));
+// Select a specific user
+$user = DB::row('SELECT id, name, email FROM users WHERE id = ?', array($id));
 
-	// Select a specific user's email
-	$email = DB::field('SELECT email FROM users WHERE id = ?', array($id));
+// Select a specific user's email
+$email = DB::field('SELECT email FROM users WHERE id = ?', array($id));
 
-	// Select a specific user by multiple fields
-	$user = DB::row('SELECT id, name, email FROM users WHERE gender = :gender and country = :country', array
-	(
-		'gender' => 'Male',
-		'country' => 'Canada'
-	));
+// Select a specific user by multiple fields
+$user = DB::row(
+    'SELECT id, name, email FROM users WHERE gender = :gender and country = :country',
+    array(
+        'gender' => 'Male',
+        'country' => 'Canada'
+    )
+);
 ?>
 ```
 
@@ -45,21 +47,21 @@ Query is a database layer for developers who enjoy writing SQL. While it does in
 ```php
 <?php
 
-	// Insert (create) a user
-	$user = new User();
-	$user->name = 'Jonathan';
-	$user->country = 'Canada';
-	$user->insert();
+// Insert (create) a user
+$user = new User();
+$user->name = 'Jonathan';
+$user->country = 'Canada';
+$user->insert();
 
-	// Select a user
-	$user = User::select(1);
+// Select a user
+$user = User::select(1);
 
-	// Update a user
-	$user->gender = 'Male';
-	$user->update();
+// Update a user
+$user->gender = 'Male';
+$user->update();
 
-	// Delete a user
-	$user->delete();
+// Delete a user
+$user->delete();
 ```
 
 ### Setup
@@ -72,28 +74,29 @@ Table comes with built-in magic methods, which will first check for `getter` and
 
 ```php
 <?php
+namespace Your\Name\Space;
 
 use Reinink\Query\Table;
 
 class User extends Table
 {
-	const DB_TABLE = 'users';
-	protected $id;
-	protected $name;
-	protected $gender;
-	protected $birthday;
-	protected $email;
-	protected $country;
+    const DB_TABLE = 'users';
+    protected $id;
+    protected $name;
+    protected $gender;
+    protected $birth_date;
+    protected $email;
+    protected $country;
 
-	public function get_birthday()
-	{
-		return date_create($this->birthday);
-	}
+    public function getBirthDate()
+    {
+        return date_create($this->birth_date);
+    }
 
-	public function set_birthday(DateTime $birthday)
-	{
-		$this->birthday = $birthday->format('Y-m-d');
-	}
+    public function setBirthDate(DateTime $birth_date)
+    {
+        $this->birth_date = $birth_date->format('Y-m-d');
+    }
 }
 ```
 
@@ -111,43 +114,45 @@ Select sits on top of Table, and therefore requires models to work. Select will 
 ```php
 <?php
 
-	// Specific fields
-	Model::select('id, name, email')
+// Define fields
+Model::select('id, name, email')
 
-	// All fields
-	// Be sure to read the "Returned objects" section below
-	Model::select()
-	Model::select('*')
+// All fields
+// IMPORTANT: Read the "Returned objects" section below
+Model::select()
+Model::select('*')
 
-	// Where conditions
-	->email($val)						// email = $val
-	->email_not($val)					// email != $val
-	->email_null()						// email IS null
-	->email_not_null()					// email IS NOT null
-	->email_like($val)					// email LIKE $val
-	->email_not_like($val)				// email NOT LIKE $val
-	->email_in(array($val1, $val2))		// email IN ($val1, $val2)
-	->email_not_in(array($val1, $val2))	// email NOT IN ($val1, $val2)
-	->age_greater($val)					// age > $val
-	->age_less($val)					// age < $val
-	->age_greater_equal($val)			// age >= $val
-	->age_less_equal($val)				// age <= $val
+// Where conditions
+->where('email', $val)                      // email = $val
+->whereNot('email', $val)                   // email != $val
+->whereNull('email')                        // email IS null
+->whereNotNull('email')                     // email IS NOT null
+->whereLike('email', $val)                  // email LIKE $val
+->whereNotLike('email', $val)               // email NOT LIKE $val
+->whereIn('email', array($val1, $val2))     // email IN ($val1, $val2)
+->whereNotIn('email', array($val1, $val2))  // email NOT IN ($val1, $val2)
+->whereGreater('age', $val)                 // age > $val
+->whereLess('age', $val)                    // age < $val
+->whereGreaterOrEqual('age', $val)          // age >= $val
+->whereLessOrEqual('age', $val)             // age <= $val
 
-	// Logical operators
-	->or_email($val)					// OR
-	->and_email_not($val)				// AND
+// Logical operators
+->or($val)                                  // OR email = $val
+->orNot($val)                               // OR email != $val
+->and($val)                                 // AND email = $val
+->andNot($val)                              // AND email != $val
 
-	// Order by
-	->order_by('name DESC')
+// Order by
+->orderBy('name DESC')
 
-	// Limits
-	->limit(10)							// LIMIT 10
-	->limit(0, 10)						// LIMIT 0, 10
+// Limits
+->limit(10)                                 // LIMIT 10
+->limit(0, 10)                              // LIMIT 0, 10
 
-	// Returning results
-	->rows()							// Multiple rows
-	->row()								// Single row
-	->field()							// Single field
+// Returning results
+->rows()                                    // Multiple rows
+->row()                                     // Single row
+->field()                                   // Single field
 ```
 
 ### Examples
@@ -155,26 +160,26 @@ Select sits on top of Table, and therefore requires models to work. Select will 
 ```php
 <?php
 
-	// Select all users
-	User::select('id, name, email')->order_by('name')->rows();
+// Select all users
+User::select('id, name, email')->orderBy('name')->rows();
 
-	// Select all users from Canada or the USA
-	User::select('id, name, email')->country_in(array('Canada', 'USA'))->order_by('name')->rows();
+// Select all users from Canada or the USA
+User::select('id, name, email')->whereIn('country', array('Canada', 'USA'))->orderBy('name')->rows();
 
-	// Select all users with the name Jonathan who don't live in Canada
-	User::select('id, name, email')->name('Jonathan')->and_country_not('Canada')->rows();
+// Select all users with the name Jonathan who don't live in Canada
+User::select('id, name, email')->where('name', 'Jonathan')->andNot('country', 'Canada')->rows();
 
-	// Select all users with no birthday set
-	User::select('id, name, email')->birthday_null()->order_by('name')->rows();
+// Select all users with no birthday set
+User::select('id, name, email')->whereNull('birthday')->orderBy('name')->rows();
 
-	// Select a specific user
-	User::select('id, name, email')->id(1)->row();
+// Select a specific user
+User::select('id, name, email')->where('id', 1)->row();
 
-	// Select a specific user's email
-	User::select('email')->id(1)->field();
+// Select a specific user's email
+User::select('email')->where('id', 1)->field();
 
-	// Select COUNT of users in Canada
-	User::select('COUNT(*)')->country('Canada')->field();
+// Select COUNT of users in Canada
+User::select('COUNT(*)')->where('country', 'Canada')->field();
 ```
 
 ### Returned objects
@@ -186,15 +191,15 @@ Conversely, when selecting specific table fields, Select will return `stdClass` 
 ```php
 <?php
 
-	$user = User::select()						// returns User
-	$user = User::select('*')					// returns User
-	$user->update()								// Works
-	$user->delete()								// Works
+$user = User::select();                     // returns User
+$user = User::select('*');                  // returns User
+$user->update();                            // Works
+$user->delete();                            // Works
 
-	$user = User::select('id, name, email')		// returns stdClass
-	$user = User::select('COUNT(*)')			// returns stdClass
-	$user->update()								// Does not work
-	$user->delete()								// Does not work
+$user = User::select('id, name, email');    // returns stdClass
+$user = User::select('COUNT(*)');           // returns stdClass
+$user->update();                            // Does not work
+$user->delete();                            // Does not work
 ```
 
 ## Query logging
@@ -204,5 +209,5 @@ Query has a built-in logger, which tracks all queries run, including those execu
 ```php
 <?php
 
-	$log = DB::log();
+$log = DB::log();
 ```

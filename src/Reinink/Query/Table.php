@@ -3,7 +3,7 @@
  * An simple ORM for basic insert, update and delete operations.
  *
  * @package  Query
- * @version  1.0
+ * @version  1.2.0
  * @author   Jonathan Reinink <jonathan@reininks.com>
  * @link     https://github.com/reinink/Query
  */
@@ -12,130 +12,155 @@ namespace Reinink\Query;
 
 use \Exception;
 use \ReflectionClass;
-use \ReflectionProperty;
 
 abstract class Table
 {
-	public function __get($property)
-	{
-		if (method_exists($this, 'get_' . $property))
-		{
-			return call_user_func(array($this, 'get_' . $property));
-		}
+    public function __get($property)
+    {
+        $method = str_replace(' ', '', ucwords(str_replace('_', ' ', $property)));
 
-		if (property_exists($this, $property))
-		{
-			return $this->$property;
-		}
-	}
+        if (method_exists($this, 'get' . $method)) {
+            return call_user_func(array($this, 'get' . $method));
+        }
 
-	public function __set($property, $value)
-	{
-		if (method_exists($this, 'set_' . $property))
-		{
-			return call_user_func_array(array($this, 'set_' . $property), array($value));
-		}
+        if (property_exists($this, $property)) {
+            return $this->$property;
+        }
+    }
 
-		if (property_exists($this, $property))
-		{
-			$this->$property = $value;
-		}
+    public function __set($property, $value)
+    {
+        $method = str_replace(' ', '', ucwords(str_replace('_', ' ', $property)));
 
-		return $this;
-	}
+        if (method_exists($this, 'set' . $method)) {
+            return call_user_func_array(array($this, 'set' . $method), array($value));
+        }
 
-	public function insert()
-	{
-		if (isset($this->id))
-		{
-			throw new Exception('Primary key is already set.');
-		}
+        if (property_exists($this, $property)) {
+            $this->$property = $value;
+        }
 
-		$class = get_called_class();
+        return $this;
+    }
 
-		$model = new ReflectionClass(get_called_class());
+    public function insert()
+    {
+        if (isset($this->id)) {
+            throw new Exception('Primary key is already set.');
+        }
 
-		foreach ($model->getProperties() as $property)
-		{
-			if ($property->isProtected() and !$property->isStatic() and $property->getName() !== 'id')
-			{
-				$values[$property->getName()] = strlen($this->{$property->getName()}) === 0 ? NULL : $this->{$property->getName()};
-			}
-		}
+        $class = get_called_class();
 
-		$sql = sprintf('INSERT INTO %s (%s) VALUES (%s)', $class::DB_TABLE, implode(', ', array_keys($values)), ':' . implode(', :', array_keys($values)));
+        $model = new ReflectionClass(get_called_class());
 
-		DB::query($sql, $values);
+        foreach ($model->getProperties() as $property) {
 
-		$this->id = DB::connection()->lastInsertId();
-	}
+            if ($property->isProtected() and
+               !$property->isStatic() and
+                $property->getName() !== 'id') {
 
-	public function update()
-	{
-		if (!isset($this->id))
-		{
-			throw new Exception('Primary key is not set.');
-		}
+                if (strlen($this->{$property->getName()})) {
 
-		$class = get_called_class();
+                    $values[$property->getName()] = $this->{$property->getName()};
 
-		$model = new ReflectionClass(get_called_class());
+                } else {
 
-		foreach ($model->getProperties() as $property)
-		{
-			if ($property->isProtected() and !$property->isStatic() and $property->getName() !== 'id')
-			{
-				$values[$property->getName()] = strlen($this->{$property->getName()}) === 0 ? NULL : $this->{$property->getName()};
-			}
-		}
+                    $values[$property->getName()] = null;
+                }
+            }
+        }
 
-		$sql = sprintf('UPDATE %s SET %s WHERE id = :id', $class::DB_TABLE, call_user_func(function() use($values)
-		{
-			foreach ($values as $name => $value)
-			{
-				if (isset($sql))
-				{
-					$sql .= ', ' . $name . ' = :' . $name;
-				}
-				else
-				{
-					$sql = $name . ' = :' . $name;
-				}
-			}
+        $sql = sprintf(
+            'INSERT INTO %s (%s) VALUES (%s)',
+            $class::DB_TABLE,
+            implode(', ', array_keys($values)),
+            ':' . implode(', :', array_keys($values))
+        );
 
-			return $sql;
-		}));
+        DB::query($sql, $values);
 
-		DB::query($sql, array_merge(array('id' => $this->id), $values));
-	}
+        $this->id = DB::connection()->lastInsertId();
+    }
 
-	public function delete()
-	{
-		if (!isset($this->id))
-		{
-			throw new Exception('Primary key is not set.');
-		}
+    public function update()
+    {
+        if (!isset($this->id)) {
+            throw new Exception('Primary key is not set.');
+        }
 
-		$class = get_called_class();
+        $class = get_called_class();
 
-		$sql = sprintf('DELETE FROM %s WHERE id = :id', $class::DB_TABLE);
+        $model = new ReflectionClass(get_called_class());
 
-		DB::query($sql, array('id' => $this->id));
-	}
+        foreach ($model->getProperties() as $property) {
 
-	public static function select($fields = '*')
-	{
-		$class = get_called_class();
+            if ($property->isProtected() and
+               !$property->isStatic() and
+                $property->getName() !== 'id') {
 
-		if (is_numeric($fields))
-		{
-			$sql = sprintf('SELECT * FROM %s WHERE id = :id', static::DB_TABLE);
+                if (strlen($this->{$property->getName()})) {
 
-			return DB::row($sql, array('id' => $fields), $class);
-		}
-		else
-		{
-			return new Select(get_called_class(), $fields);
-		}
-	}
+                    $values[$property->getName()] = $this->{$property->getName()};
+
+                } else {
+
+                    $values[$property->getName()] = null;
+                }
+            }
+        }
+
+        $sql = sprintf(
+            'UPDATE %s SET %s WHERE id = :id',
+            $class::DB_TABLE,
+            call_user_func(
+                function () use ($values) {
+
+                    foreach ($values as $name => $value) {
+
+                        if (isset($sql)) {
+
+                            $sql .= ', ' . $name . ' = :' . $name;
+
+                        } else {
+
+                            $sql = $name . ' = :' . $name;
+                        }
+                    }
+
+                    return $sql;
+                }
+            )
+        );
+
+        DB::query($sql, array_merge(array('id' => $this->id), $values));
+    }
+
+    public function delete()
+    {
+        if (!isset($this->id)) {
+            throw new Exception('Primary key is not set.');
+        }
+
+        $class = get_called_class();
+
+        $sql = sprintf('DELETE FROM %s WHERE id = :id', $class::DB_TABLE);
+
+        DB::query($sql, array('id' => $this->id));
+    }
+
+    public static function select($fields = '*')
+    {
+        $class = get_called_class();
+
+        if (is_numeric($fields)) {
+
+            $sql = sprintf('SELECT * FROM %s WHERE id = :id', static::DB_TABLE);
+
+            return DB::row($sql, array('id' => $fields), $class);
+
+        } else {
+
+            return new Select(get_called_class(), $fields);
+        }
+    }
 }

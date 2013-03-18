@@ -3,189 +3,189 @@
  * A simple query builder for select statements.
  *
  * @package  Query
- * @version  1.0
+ * @version  2.0.0
  * @author   Jonathan Reinink <jonathan@reininks.com>
  * @link     https://github.com/reinink/Query
  */
 
 namespace Reinink\Query;
 
+use \Exception;
+
 class Select
 {
-	private $class;
-	private $table;
-	private $fields;
-	private $where;
-	private $values;
-	private $order_by;
-	private $limit;
+    private $class;
+    private $table;
+    private $fields;
+    private $where;
+    private $values;
+    private $order_by;
+    private $limit;
 
-	public function __construct($class, $fields = '*')
-	{
-		$this->class = $class;
-		$this->table = $class::DB_TABLE;
-		$this->fields = $fields;
-		$this->where = '';
-	}
+    public function __construct($class, $fields = '*')
+    {
+        $this->class = $class;
+        $this->table = $class::DB_TABLE;
+        $this->fields = $fields;
+        $this->where = '';
+    }
 
-	public function __call($method, $values)
-	{
-		if (!strncmp($method, 'and_', strlen('and_')))
-		{
-			$this->where .= ' AND ';
-			$method = substr($method, 4);
-		}
-		else if (!strncmp($method, 'or_', strlen('or_')))
-		{
-			$this->where .= ' OR ';
-			$method = substr($method, 3);
-		}
+    public function __call($method, $values)
+    {
+        if (!strncmp($method, 'where', 5)) {
 
-		if (substr($method, -strlen('_not')) === '_not')
-		{
-			$this->where .= substr($method, 0, -4) . ' != ?';
-			$this->values[] = $values[0];
-		}
-		else if (substr($method, -strlen('_not_null')) === '_not_null')
-		{
-			$this->where .= substr($method, 0, -9) . ' IS NOT NULL';
-		}
-		else if (substr($method, -strlen('_null')) === '_null')
-		{
-			$this->where .= substr($method, 0, -5) . ' IS NULL';
-		}
-		else if (substr($method, -strlen('_not_like')) === '_not_like')
-		{
-			$this->where .= substr($method, 0, -9) . ' NOT LIKE ?';
-			$this->values[] = $values[0];
-		}
-		else if (substr($method, -strlen('_like')) === '_like')
-		{
-			$this->where .= substr($method, 0, -5) . ' LIKE ?';
-			$this->values[] = $values[0];
-		}
-		else if (substr($method, -strlen('_not_in')) === '_not_in')
-		{
-			$this->where .= substr($method, 0, -7) . ' NOT IN (' . str_repeat('?,', count($values[0]) - 1) . '?)';
+            $method = substr($method, 5);
 
-			foreach ($values[0] as $value)
-			{
-				$this->values[] = $value;
-			}
-		}
-		else if (substr($method, -strlen('_in')) === '_in')
-		{
-			$this->where .= substr($method, 0, -3) . ' IN (' . str_repeat('?,', count($values[0]) - 1) . '?)';
+        } elseif (!strncmp($method, 'and', 3)) {
 
-			foreach ($values[0] as $value)
-			{
-				$this->values[] = $value;
-			}
-		}
-		else if (substr($method, -strlen('_greater')) === '_greater')
-		{
-			$this->where .= substr($method, 0, -8) . ' > ?';
-			$this->values[] = $values[0];
-		}
-		else if (substr($method, -strlen('_less')) === '_less')
-		{
-			$this->where .= substr($method, 0, -5) . ' < ?';
-			$this->values[] = $values[0];
-		}
-		else if (substr($method, -strlen('_greater_equal')) === '_greater_equal')
-		{
-			$this->where .= substr($method, 0, -14) . ' >= ?';
-			$this->values[] = $values[0];
-		}
-		else if (substr($method, -strlen('_less_equal')) === '_less_equal')
-		{
-			$this->where .= substr($method, 0, -11) . ' <= ?';
-			$this->values[] = $values[0];
-		}
-		else
-		{
-			$this->where .= $method . ' = ?';
-			$this->values[] = $values[0];
-		}
+            $this->where .= ' AND ';
+            $method = substr($method, 3);
 
-		return $this;
-	}
+        } elseif (!strncmp($method, 'or', 2)) {
 
-	public function order_by($fields)
-	{
-		$this->order_by = $fields;
+            $this->where .= ' OR ';
+            $method = substr($method, 2);
 
-		return $this;
-	}
+        } else {
 
-	public function limit($offset, $limit = null)
-	{
-		if (is_null($limit))
-		{
-			$this->limit = $offset;
-		}
-		else
-		{
-			$this->limit = $offset . ', ' . $limit;
-		}
+            throw new Exception('Invalid where operator. Allowed: where, and & or.');
+        }
 
-		return $this;
-	}
+        if ($method === false) {
 
-	private function build()
-	{
-		$sql = 'SELECT';
-		$sql .= "\n\t" . $this->fields;
-		$sql .=  "\n" . 'FROM ';
-		$sql .= "\n\t" . $this->table;
+            $this->where .= $values[0] . ' = ?';
+            $this->values[] = $values[1];
 
-		if ($this->where)
-		{
-			$sql .= "\n" . 'WHERE';
-			$sql .= "\n\t"  . $this->where;
-		}
+        } elseif ($method === 'Not') {
 
-		if ($this->order_by)
-		{
-			$sql .= "\n" . 'ORDER BY';
-			$sql .= "\n\t" . $this->order_by;
-		}
+            $this->where .= $values[0] . ' != ?';
+            $this->values[] = $values[1];
 
-		if ($this->limit)
-		{
-			$sql .= "\n" . 'LIMIT ';
-			$sql .= $this->limit;
-		}
+        } elseif ($method === 'Null') {
 
-		return $sql;
-	}
+            $this->where .= $values[0] . ' IS NULL';
 
-	public function rows()
-	{
-		if ($this->fields === '*')
-		{
-			return DB::rows($this->build(), $this->values, $this->class);
-		}
-		else
-		{
-			return DB::rows($this->build(), $this->values);
-		}
-	}
+        } elseif ($method === 'NotNull') {
 
-	public function row()
-	{
-		if ($this->fields === '*')
-		{
-			return DB::row($this->build(), $this->values, $this->class);
-		}
-		else
-		{
-			return DB::row($this->build(), $this->values);
-		}
-	}
+            $this->where .= $values[0] . ' IS NOT NULL';
 
-	public function field()
-	{
-		return DB::field($this->build(), $this->values);
-	}
+        } elseif ($method === 'Like') {
+
+            $this->where .= $values[0] . ' LIKE ?';
+            $this->values[] = $values[1];
+
+        } elseif ($method === 'NotLike') {
+
+            $this->where .= $values[0] . ' NOT LIKE ?';
+            $this->values[] = $values[1];
+
+        } elseif ($method === 'In') {
+
+            $this->where .= $values[0] . ' IN (' . str_repeat('?,', count($values[1]) - 1) . '?)';
+
+            foreach ($values[1] as $value) {
+                $this->values[] = $value;
+            }
+
+        } elseif ($method === 'NotIn') {
+
+            $this->where .= $values[0] . ' NOT IN (' . str_repeat('?,', count($values[1]) - 1) . '?)';
+
+            foreach ($values[1] as $value) {
+                $this->values[] = $value;
+            }
+
+        } elseif ($method === 'Greater') {
+
+            $this->where .= $values[0] . ' > ?';
+            $this->values[] = $values[1];
+
+        } elseif ($method === 'Less') {
+
+            $this->where .= $values[0] . ' < ?';
+            $this->values[] = $values[1];
+
+        } elseif ($method === 'GreaterOrEqual') {
+
+            $this->where .= $values[0] . ' >= ?';
+            $this->values[] = $values[1];
+
+        } elseif ($method === 'LessOrEqual') {
+
+            $this->where .= $values[0] . ' <= ?';
+            $this->values[] = $values[1];
+
+        } else {
+
+            throw new Exception('Invalid where clause (' . $method . ').');
+        }
+
+        return $this;
+    }
+
+    public function orderBy($fields)
+    {
+        $this->order_by = $fields;
+
+        return $this;
+    }
+
+    public function limit($offset, $limit = null)
+    {
+        if (is_null($limit)) {
+            $this->limit = $offset;
+        } else {
+            $this->limit = $offset . ', ' . $limit;
+        }
+
+        return $this;
+    }
+
+    private function build()
+    {
+        $sql = 'SELECT';
+        $sql .= "\n\t" . $this->fields;
+        $sql .=  "\n" . 'FROM ';
+        $sql .= "\n\t" . $this->table;
+
+        if ($this->where) {
+            $sql .= "\n" . 'WHERE';
+            $sql .= "\n\t"  . $this->where;
+        }
+
+        if ($this->order_by) {
+            $sql .= "\n" . 'ORDER BY';
+            $sql .= "\n\t" . $this->order_by;
+        }
+
+        if ($this->limit) {
+            $sql .= "\n" . 'LIMIT ';
+            $sql .= $this->limit;
+        }
+
+        return $sql;
+    }
+
+    public function rows()
+    {
+        if ($this->fields === '*') {
+            return DB::rows($this->build(), $this->values, $this->class);
+        } else {
+            return DB::rows($this->build(), $this->values);
+        }
+    }
+
+    public function row()
+    {
+        if ($this->fields === '*') {
+            return DB::row($this->build(), $this->values, $this->class);
+        } else {
+            return DB::row($this->build(), $this->values);
+        }
+    }
+
+    public function field()
+    {
+        return DB::field($this->build(), $this->values);
+    }
 }
