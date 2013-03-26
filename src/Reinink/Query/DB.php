@@ -1,13 +1,4 @@
 <?php
-/**
- * A database layer for developers who like writing SQL.
- *
- * @package  Query
- * @version  1.0.1
- * @author   Jonathan Reinink <jonathan@reininks.com>
- * @link     https://github.com/reinink/Query
- */
-
 namespace Reinink\Query;
 
 use \Exception;

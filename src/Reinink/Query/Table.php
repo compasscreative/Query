@@ -1,13 +1,4 @@
 <?php
-/**
- * An simple ORM for basic insert, update and delete operations.
- *
- * @package  Query
- * @version  1.2.0
- * @author   Jonathan Reinink <jonathan@reininks.com>
- * @link     https://github.com/reinink/Query
- */
-
 namespace Reinink\Query;
 
 use \Exception;

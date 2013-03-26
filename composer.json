@@ -1,5 +1,7 @@
 {
 	"name": "reinink/query",
+    "description": "A database layer for developers who like writing SQL.",
+    "version": "1.0.0",
 	"autoload":
 	{
 		"psr-0":

@@ -1,13 +1,4 @@
 <?php
-/**
- * A simple query builder for select statements.
- *
- * @package  Query
- * @version  2.0.0
- * @author   Jonathan Reinink <jonathan@reininks.com>
- * @link     https://github.com/reinink/Query
- */
-
 namespace Reinink\Query;
 
 use \Exception;
